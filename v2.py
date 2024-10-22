@@ -8,7 +8,7 @@ import time
 import concurrent.futures
 import discord
 from discord.ext import commands, tasks
-import docker
+import udocker
 import asyncio
 from discord import app_commands
 
@@ -22,7 +22,7 @@ intents.messages = False
 intents.message_content = False
 
 bot = commands.Bot(command_prefix='/', intents=intents)
-client = docker.from_env()
+client = udocker.from_env()
 
 # port gen forward module < i forgot this shit in the start
 def generate_random_port(): 
