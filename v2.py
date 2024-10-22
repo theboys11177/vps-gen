@@ -110,7 +110,7 @@ async def regen_ssh_command(interaction: discord.Interaction, container_name: st
         return
 
     try:
-        exec_cmd = await asyncio.create_subprocess_exec("docker", "exec", container_id, "tmate", "-F",
+        exec_cmd = await asyncio.create_subprocess_exec("udocker", "exec", container_id, "tmate", "-F",
                                                         stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
     except subprocess.CalledProcessError as e:
         await interaction.response.send_message(embed=discord.Embed(description=f"Error executing tmate in Docker container: {e}", color=0xff0000))
@@ -133,7 +133,7 @@ async def start_server(interaction: discord.Interaction, container_name: str):
 
     try:
         subprocess.run(["docker", "start", container_id], check=True)
-        exec_cmd = await asyncio.create_subprocess_exec("docker", "exec", container_id, "tmate", "-F",
+        exec_cmd = await asyncio.create_subprocess_exec("udocker", "exec", container_id, "tmate", "-F",
                                                         stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
         ssh_session_line = await capture_ssh_session_line(exec_cmd)
         if ssh_session_line:
@@ -153,7 +153,7 @@ async def stop_server(interaction: discord.Interaction, container_name: str):
         return
 
     try:
-        subprocess.run(["docker", "stop", container_id], check=True)
+        subprocess.run(["udocker", "stop", container_id], check=True)
         await interaction.response.send_message(embed=discord.Embed(description="Instance stopped successfully.", color=0x00ff00))
     except subprocess.CalledProcessError as e:
         await interaction.response.send_message(embed=discord.Embed(description=f"Error stopping instance: {e}", color=0xff0000))
@@ -167,7 +167,7 @@ async def restart_server(interaction: discord.Interaction, container_name: str):
         return
 
     try:
-        subprocess.run(["docker", "restart", container_id], check=True)
+        subprocess.run(["udocker", "restart", container_id], check=True)
         exec_cmd = await asyncio.create_subprocess_exec("docker", "exec", container_id, "tmate", "-F",
                                                         stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
         ssh_session_line = await capture_ssh_session_line(exec_cmd)
@@ -222,7 +222,7 @@ async def port_add(interaction: discord.Interaction, container_name: str, contai
     try:
         # Run the command in the background using Docker exec
         await asyncio.create_subprocess_exec(
-            "docker", "exec", container_name, "bash", "-c", command,
+            "udocker", "exec", container_name, "bash", "-c", command,
             stdout=asyncio.subprocess.DEVNULL,  # No need to capture output
             stderr=asyncio.subprocess.DEVNULL  # No need to capture errors
         )
@@ -238,7 +238,7 @@ async def port_add(interaction: discord.Interaction, container_name: str, contai
 async def port_forward_website(interaction: discord.Interaction, container_name: str, container_port: int):
     try:
         exec_cmd = await asyncio.create_subprocess_exec(
-            "docker", "exec", container_name, "ssh", "-o StrictHostKeyChecking=no", "-R", f"80:localhost:{container_port}", "serveo.net",
+            "udocker", "exec", container_name, "ssh", "-o StrictHostKeyChecking=no", "-R", f"80:localhost:{container_port}", "serveo.net",
             stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )
         url_line = await capture_output(exec_cmd, "Forwarding HTTP traffic from")
@@ -261,7 +261,7 @@ async def create_server_task(interaction):
     
     try:
         container_id = subprocess.check_output([
-            "docker", "run", "-itd", "--privileged", "--cap-add=ALL", image
+            "udocker", "run", "-itd", "--privileged", "--cap-add=ALL", image
         ]).strip().decode('utf-8')
     except subprocess.CalledProcessError as e:
         await interaction.followup.send(embed=discord.Embed(description=f"Error creating Docker container: {e}", color=0xff0000))
@@ -272,8 +272,8 @@ async def create_server_task(interaction):
                                                         stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
     except subprocess.CalledProcessError as e:
         await interaction.followup.send(embed=discord.Embed(description=f"Error executing tmate in Docker container: {e}", color=0xff0000))
-        subprocess.run(["docker", "kill", container_id])
-        subprocess.run(["docker", "rm", container_id])
+        subprocess.run(["udocker", "kill", container_id])
+        subprocess.run(["udocker", "rm", container_id])
         return
 
     ssh_session_line = await capture_ssh_session_line(exec_cmd)
@@ -283,8 +283,8 @@ async def create_server_task(interaction):
         await interaction.followup.send(embed=discord.Embed(description="Instance created successfully. Check your DMs for details.", color=0x00ff00))
     else:
         await interaction.followup.send(embed=discord.Embed(description="Something went wrong or the Instance is taking longer than expected. If this problem continues, Contact Support.", color=0xff0000))
-        subprocess.run(["docker", "kill", container_id])
-        subprocess.run(["docker", "rm", container_id])
+        subprocess.run(["udocker", "kill", container_id])
+        subprocess.run(["udocker", "rm", container_id])
 
 async def create_server_task_debian(interaction):
     await interaction.response.send_message(embed=discord.Embed(description="Creating Instance, This takes a few seconds.", color=0x00ff00))
@@ -297,19 +297,19 @@ async def create_server_task_debian(interaction):
     
     try:
         container_id = subprocess.check_output([
-            "docker", "run", "-itd", "--privileged", "--cap-add=ALL", image
+            "udocker", "run", "-itd", "--privileged", "--cap-add=ALL", image
         ]).strip().decode('utf-8')
     except subprocess.CalledProcessError as e:
         await interaction.followup.send(embed=discord.Embed(description=f"Error creating Docker container: {e}", color=0xff0000))
         return
 
     try:
-        exec_cmd = await asyncio.create_subprocess_exec("docker", "exec", container_id, "tmate", "-F",
+        exec_cmd = await asyncio.create_subprocess_exec("udocker", "exec", container_id, "tmate", "-F",
                                                         stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
     except subprocess.CalledProcessError as e:
         await interaction.followup.send(embed=discord.Embed(description=f"Error executing tmate in Docker container: {e}", color=0xff0000))
-        subprocess.run(["docker", "kill", container_id])
-        subprocess.run(["docker", "rm", container_id])
+        subprocess.run(["udocker", "kill", container_id])
+        subprocess.run(["udocker", "rm", container_id])
         return
 
     ssh_session_line = await capture_ssh_session_line(exec_cmd)
@@ -384,8 +384,8 @@ async def remove_server(interaction: discord.Interaction, container_name: str):
         return
 
     try:
-        subprocess.run(["docker", "stop", container_id], check=True)
-        subprocess.run(["docker", "rm", container_id], check=True)
+        subprocess.run(["udocker", "stop", container_id], check=True)
+        subprocess.run(["udocker", "rm", container_id], check=True)
         
         remove_from_database(container_id)
         
